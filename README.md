@@ -26,31 +26,23 @@ fn a_calculator() -> Calculator {
     Calculator {}
 }
 
-fn adding_1_and_2(c: &Calculator) -> i32 {
-    c.add(1, 2)
+fn adding_1_and_2(calculator: &Calculator) -> i32 {
+    calculator.add(1, 2)
 }
 
-fn adding(calculator: &Calculator, left: i32, right: i32) -> i32 {
-    calculator.add(left, right)
-}
-
-fn the_answer_is_3(the_answer: &i32) -> &i32 {
-    assert_eq!(the_answer.clone(), 3);
-    the_answer
+fn the_answer_is_3(the_answer: &i32) -> () {
+    assert_eq!(3, the_answer.clone());
 }
 ```
 
 In the above, the given/when/then accept functions where the given returns the system under test, the when takes the system under test as a parameter and returns the result which is fed into the thens (which you can chain) to do assertions.
 
-in long form you could also use it like this with closures...
+You could also use it like this with closures...
 ```
  Test::scenario()
     .given(|| Calculator {})
-    .when(|c| adding(c, 1, 2))
-    .then(|answer| {
-        assert_eq!(answer.clone(), 3);
-        answer
-    });
+    .when(|calculator| calculator.add(1, 2))
+    .then(|answer| assert_eq!(3, answer.clone()));
 ```
 ## How is this achieved? 
 
