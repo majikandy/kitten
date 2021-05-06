@@ -10,7 +10,6 @@
 
 ## Show me the code
 
-So, your tests are no different to what you know now, they are simple NUnit Tests. With one addition, a Description attribute to show which bullet point from the features that you are covering with that test (or tests)
 ```
 use kitten::*;
 
