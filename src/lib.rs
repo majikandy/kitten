@@ -1,46 +1,45 @@
-pub trait GWT<TRESULT, SUT> {
-    fn given(self, function: fn() -> SUT) -> Self;
-    fn and_given(self, function: fn() -> SUT) -> Self;
-    fn when(self, function: fn(&SUT) -> TRESULT) -> Self;
-    fn then(self, function: fn(&TRESULT) -> &TRESULT) -> Self;
-    fn and(self, function: fn(&TRESULT) -> &TRESULT) -> Self;
+pub trait GWT<Result, SystemUnderTest> {
+    fn given(self, function: fn() -> SystemUnderTest) -> Self;
+    fn and_given(self, function: fn() -> SystemUnderTest) -> Self;
+    fn when(self, function: fn(&SystemUnderTest) -> Result) -> Self;
+    fn then(self, function: fn(&Result) -> ()) -> Self;
+    fn and(self, function: fn(&Result) -> ()) -> Self;
 }
-pub struct Test<TRESULT, SUT> {
-    pub system_under_test: Option<SUT>,
-    pub result: Option<TRESULT>,
+pub struct Test<Result, SystemUnderTest> {
+    pub system_under_test: Option<SystemUnderTest>,
+    pub result: Option<Result>,
 }
 
-impl<TRESULT, SUT> Test<TRESULT, SUT> {
+impl<Result, SystemUnderTest> Test<Result, SystemUnderTest> {
     pub fn scenario() -> Self {
-        Test::<TRESULT, SUT> {
+        Test::<Result, SystemUnderTest> {
             result: None,
             system_under_test: None,
         }
     }
 }
 
-impl<TRESULT, SUT> GWT<TRESULT, SUT> for Test<TRESULT, SUT> {
-    fn given(mut self, function: fn() -> SUT) -> Self {
+impl<Result, SystemUnderTest> GWT<Result, SystemUnderTest> for Test<Result, SystemUnderTest> {
+    fn given(mut self, function: fn() -> SystemUnderTest) -> Self {
         self.system_under_test = Some(function());
         return self;
     }
-    fn and_given(mut self, function: fn() -> SUT) -> Self {
+    fn and_given(mut self, function: fn() -> SystemUnderTest) -> Self {
         self.system_under_test = Some(function());
         return self;
     }
-    fn when(mut self, function: fn(&SUT) -> TRESULT) -> Self {
-        self.result = Some(function(
-            self.system_under_test
-                .as_ref()
-                .expect("SUT should not be None, you must have a given"),
-        ));
+    fn when(mut self, function: fn(&SystemUnderTest) -> Result) -> Self {
+        self.result =
+            Some(function(self.system_under_test.as_ref().expect(
+                "SYSTEM_UNDER_TEST should not be None, you must have a given",
+            )));
         return self;
     }
-    fn then(self, function: fn(&TRESULT) -> &TRESULT) -> Self {
+    fn then(self, function: fn(&Result) -> ()) -> Self {
         function(self.result.as_ref().expect("Result should not be None"));
         return self;
     }
-    fn and(self, function: fn(&TRESULT) -> &TRESULT) -> Self {
+    fn and(self, function: fn(&Result) -> ()) -> Self {
         function(self.result.as_ref().expect("Result should not be None"));
         return self;
     }
@@ -56,14 +55,19 @@ mod tests {
     fn it_works_with_closures() {
         Test::scenario()
             .given(|| ())
-            .when(|_sut| "something is returned by system under test")
+            .when(|_| "something is returned by system under test")
             .then(|x| {
-                assert_eq!(x.clone(), "something is returned by system under test");
-                x
+                assert_eq!(
+                    x.clone(),
+                    "something is returned by system under test",
+                    "comparisons can be checked against the return"
+                );
             })
-            .and(|x| {
+            .then(|x| {
+                assert!(!x.clone().is_empty(), "chaining asserts :)");
+            })
+            .and(|_| {
                 assert_eq!(1, 1);
-                x
             });
     }
 
@@ -84,7 +88,6 @@ mod tests {
             .when(|c| adding(c, 1, 2))
             .then(|answer| {
                 assert_eq!(answer.clone(), 3);
-                answer
             })
             .and(the_answer_is_3_checked_via_a_function);
     }
@@ -93,9 +96,8 @@ mod tests {
         c.add(1, 2)
     }
 
-    fn the_answer_is_3_checked_via_a_function(the_answer: &i32) -> &i32 {
+    fn the_answer_is_3_checked_via_a_function(the_answer: &i32) -> () {
         assert_eq!(the_answer.clone(), 3);
-        the_answer
     }
 
     fn adding(calculator: &Calculator, left: i32, right: i32) -> i32 {
