@@ -1,25 +1,25 @@
-pub trait GWT<T, SUT> {
+pub trait GWT<TRESULT, SUT> {
     fn given(self, function: fn() -> SUT) -> Self;
     fn and_given(self, function: fn() -> SUT) -> Self;
-    fn when(self, function: fn(&SUT) -> T) -> Self;
-    fn then(self, function: fn(&T) -> &T) -> Self;
-    fn and(self, function: fn(&T) -> &T) -> Self;
+    fn when(self, function: fn(&SUT) -> TRESULT) -> Self;
+    fn then(self, function: fn(&TRESULT) -> &TRESULT) -> Self;
+    fn and(self, function: fn(&TRESULT) -> &TRESULT) -> Self;
 }
-pub struct Test<T, SUT> {
+pub struct Test<TRESULT, SUT> {
     pub system_under_test: Option<SUT>,
-    pub result: Option<T>,
+    pub result: Option<TRESULT>,
 }
 
-impl<T, SUT> Test<T, SUT> {
+impl<TRESULT, SUT> Test<TRESULT, SUT> {
     pub fn scenario() -> Self {
-        Test::<T, SUT> {
+        Test::<TRESULT, SUT> {
             result: None,
             system_under_test: None,
         }
     }
 }
 
-impl<T, SUT> GWT<T, SUT> for Test<T, SUT> {
+impl<TRESULT, SUT> GWT<TRESULT, SUT> for Test<TRESULT, SUT> {
     fn given(mut self, function: fn() -> SUT) -> Self {
         self.system_under_test = Some(function());
         return self;
@@ -28,26 +28,27 @@ impl<T, SUT> GWT<T, SUT> for Test<T, SUT> {
         self.system_under_test = Some(function());
         return self;
     }
-    fn when(mut self, function: fn(&SUT) -> T) -> Self {
+    fn when(mut self, function: fn(&SUT) -> TRESULT) -> Self {
         self.result = Some(function(
             self.system_under_test
                 .as_ref()
-                .expect("SUT should not be None"),
+                .expect("SUT should not be None, you must have a given"),
         ));
         return self;
     }
-    fn then(self, function: fn(&T) -> &T) -> Self {
+    fn then(self, function: fn(&TRESULT) -> &TRESULT) -> Self {
         function(self.result.as_ref().expect("Result should not be None"));
         return self;
     }
-    fn and(self, function: fn(&T) -> &T) -> Self {
+    fn and(self, function: fn(&TRESULT) -> &TRESULT) -> Self {
         function(self.result.as_ref().expect("Result should not be None"));
         return self;
     }
 }
-mod calculator;
+
 #[cfg(test)]
 mod tests {
+    mod calculator;
     use super::*;
     use calculator::*;
 
@@ -77,8 +78,8 @@ mod tests {
     #[test]
     fn it_works_with_named_functions_closures_and_closures_that_call_functions() {
         Test::scenario()
-            .given(a_calculator)
-            .and_given(a_calculator)
+            .given(|| Calculator {})
+            .and_given(a_calculator) // last return in given chain passed to when
             .when(adding_1_and_2_via_a_function)
             .when(|c| adding(c, 1, 2))
             .then(|answer| {
