@@ -1,107 +1,99 @@
-pub trait GWT<Result, SystemUnderTest> {
-    fn given(self, function: fn() -> SystemUnderTest) -> Self;
-    fn and_given(self, function: fn() -> SystemUnderTest) -> Self;
-    fn when(self, function: fn(&SystemUnderTest) -> Result) -> Self;
-    fn then(self, function: fn(&Result) -> ()) -> Self;
-    fn and(self, function: fn(&Result) -> ()) -> Self;
-}
-pub struct Test<Result, SystemUnderTest> {
-    pub system_under_test: Option<SystemUnderTest>,
-    pub result: Option<Result>,
-}
+pub struct Kitten;
 
-impl<Result, SystemUnderTest> Test<Result, SystemUnderTest> {
-    pub fn scenario() -> Self {
-        Test::<Result, SystemUnderTest> {
-            result: None,
-            system_under_test: None,
-        }
+impl Kitten {
+    pub fn given<Result>(function: fn() -> Result) -> GivenAnd<Result> {
+        let result = function();
+        GivenAnd { data: result }
     }
 }
 
-impl<Result, SystemUnderTest> GWT<Result, SystemUnderTest> for Test<Result, SystemUnderTest> {
-    fn given(mut self, function: fn() -> SystemUnderTest) -> Self {
-        self.system_under_test = Some(function());
-        return self;
+pub struct GivenAnd<T> {
+    data: T,
+}
+
+impl<Input> GivenAnd<Input> {
+    pub fn and<Result>(self, function: fn(Input) -> Result) -> GivenAnd<Result> {
+        let result = function(self.data);
+        GivenAnd { data: result }
     }
-    fn and_given(mut self, function: fn() -> SystemUnderTest) -> Self {
-        self.system_under_test = Some(function());
-        return self;
-    }
-    fn when(mut self, function: fn(&SystemUnderTest) -> Result) -> Self {
-        self.result =
-            Some(function(self.system_under_test.as_ref().expect(
-                "SYSTEM_UNDER_TEST should not be None, you must have a given",
-            )));
-        return self;
-    }
-    fn then(self, function: fn(&Result) -> ()) -> Self {
-        function(self.result.as_ref().expect("Result should not be None"));
-        return self;
-    }
-    fn and(self, function: fn(&Result) -> ()) -> Self {
-        function(self.result.as_ref().expect("Result should not be None"));
-        return self;
+
+    pub fn when<Result>(self, function: fn(Input) -> Result) -> When<Result> {
+        let result = function(self.data);
+        When { data: result }
     }
 }
 
+pub struct When<T> {
+    data: T,
+}
+
+impl<Input> When<Input> {
+    pub fn then<Result>(self, function: fn(Input) -> Result) -> Then<Result> {
+        let result = function(self.data);
+        Then { data: result }
+    }
+}
+
+pub struct Then<T> {
+    data: T,
+}
+
+impl<Input> Then<Input> {
+    pub fn and<Result>(self, function: fn(Input) -> Result) -> Then<Result> {
+        let result = function(self.data);
+        Then { data: result }
+    }
+}
 #[cfg(test)]
 mod tests {
     mod calculator;
-    use super::*;
-    use calculator::*;
+    use crate::Kitten;
+    use calculator::Calculator;
+
+    use self::calculator::Calc;
 
     #[test]
-    fn it_works_with_closures() {
-        Test::scenario()
-            .given(|| ())
-            .when(|_| "something is returned by system under test")
-            .then(|x| {
-                assert_eq!(
-                    x.clone(),
-                    "something is returned by system under test",
-                    "comparisons can be checked against the return"
-                );
+    fn kitten_works_with_closures() {
+        Kitten::given(|| 10)
+            .and(|result| {
+                assert_eq!(result, 10);
+                String::from("another type")
             })
-            .then(|x| {
-                assert!(!x.clone().is_empty(), "chaining asserts :)");
+            .when(|result| {
+                assert_eq!(result, String::from("another type"));
+                ()
             })
-            .and(|_| {
-                assert_eq!(1, 1);
-            });
+            .then(|result| {
+                assert_eq!(result, ());
+                vec!["this", "is", "a", "list"]
+            })
+            .and(|result| assert_eq!(result, vec!["this", "is", "a", "list"]));
     }
 
     #[test]
-    fn it_works_with_named_functions_and_looks_clean() {
-        Test::scenario()
-            .given(a_calculator)
+    fn kitten_works_with_named_functions_and_looks_clean() {
+        Kitten::given(a_calculator)
             .when(adding_1_and_2_via_a_function)
             .then(the_answer_is_3_checked_via_a_function);
     }
-
     #[test]
+
     fn it_works_with_named_functions_closures_and_closures_that_call_functions() {
-        Test::scenario()
-            .given(|| Calculator {})
-            .and_given(a_calculator) // last return in given chain passed to when
+        Kitten::given(a_calculator) // last return in given chain passed to when
             .when(adding_1_and_2_via_a_function)
-            .when(|c| adding(c, 1, 2))
             .then(|answer| {
-                assert_eq!(answer.clone(), 3);
+                assert_eq!(answer, 3);
+                answer
             })
             .and(the_answer_is_3_checked_via_a_function);
     }
 
-    fn adding_1_and_2_via_a_function(c: &Calculator) -> i32 {
+    fn adding_1_and_2_via_a_function(c: Calculator) -> i32 {
         c.add(1, 2)
     }
 
-    fn the_answer_is_3_checked_via_a_function(the_answer: &i32) -> () {
+    fn the_answer_is_3_checked_via_a_function(the_answer: i32) -> () {
         assert_eq!(the_answer.clone(), 3);
-    }
-
-    fn adding(calculator: &Calculator, left: i32, right: i32) -> i32 {
-        calculator.add(left, right)
     }
 
     fn a_calculator() -> Calculator {
