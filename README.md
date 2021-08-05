@@ -2,7 +2,7 @@
 
 ## Installation
   `cargo install kitten`
- 
+
 **Kitten** is a very light acceptance test framework for Rust. It provides things that teams may prefer over cucumber or other bdd frameworks.
 
 - Use default language features
@@ -10,13 +10,12 @@
 
 ## Show me the code
 
-```
+```rust
 use kitten::*;
 
 #[test]
 fn calculator_can_add_numbers() {
-    Test::scenario()
-        .given(a_calculator)
+    Kitten::given(a_calculator)
         .when(adding_1_and_2)
         .then(the_answer_is_3);
     }
@@ -26,27 +25,54 @@ fn a_calculator() -> Calculator {
     Calculator {}
 }
 
-fn adding_1_and_2(calculator: &Calculator) -> i32 {
+fn adding_1_and_2(calculator: Calculator) -> i32 {
     calculator.add(1, 2)
 }
 
-fn the_answer_is_3(the_answer: &i32) -> () {
-    assert_eq!(3, the_answer.clone());
+fn the_answer_is_3(the_answer: i32) -> () {
+    assert_eq!(3, the_answer);
 }
 ```
 
-In the above, the given/when/then accept functions where the given returns the system under test, the when takes the system under test as a parameter and returns the result which is fed into the thens (which you can chain) to do assertions.
+In the above, the flow of `.given/.when/.then/.and` acts like a chain, where each step accepts a function that feeds the result into the input of the succeeding one.
 
 You could also use it like this with closures...
-```
- Test::scenario()
-    .given(|| Calculator {})
+
+```rust
+Kitten::given(|| Calculator {})
     .when(|calculator| calculator.add(1, 2))
     .then(|answer| assert_eq!(3, answer.clone()));
 ```
-## How is this achieved? 
 
-It's all Rust, and it's not driven by gherkin! It's simpler. 
+The function of a step has a generic return type, so you are free to adapt what is passed through the chain, like so:
+
+```rust
+Kitten::given(|| "hello world") // we return a &str
+    .when(|hello_world| Some(hello_world)) // we return a Option<&str>
+    .then(|some_hello_word| {
+        assert_eq!(some_hello_world.is_none(), false); // we assert on our Option<&str>
+    });
+```
+
+This feature also comes in handy when you need to pass results in-between steps:
+
+```rust
+Kitten::given(|| Foo{})
+    .and(|foo| (foo,  Bar{}))
+    .when(|(foo, bar)| {
+        foo.update();
+        bar.update();
+        (foo, bar)
+    })
+    .then(|(foo, bar)| {
+        foo_is_updated(foo);
+        bar_is_updated(bar);
+    });
+```
+
+## How is this achieved?
+
+It's all Rust, and it's not driven by gherkin! It's simpler.
 
 With Kitten, Given When Then is all you need
 
