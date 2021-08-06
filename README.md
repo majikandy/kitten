@@ -57,16 +57,14 @@ Kitten::given(|| "hello world") // we return a &str
 This feature also comes in handy when you need to pass results in-between steps:
 
 ```rust
-Kitten::given(|| Foo{})
-    .and(|foo| (foo,  Bar{}))
-    .when(|(foo, bar)| {
-        foo.update();
-        bar.update();
-        (foo, bar)
+Kitten::given(|| School{})
+    .and(|school| (school,  Pupil{}))
+    .when(|(school, pupil)| {
+        school.enrol(pupil)
     })
-    .then(|(foo, bar)| {
-        foo_is_updated(foo);
-        bar_is_updated(bar);
+    .then(|(school, person)| {
+        assert_eq(school.pupils.contains(pupil), true);
+        assert_eq(pupil.is_enrolled_to_a_school(), true);
     });
 ```
 
