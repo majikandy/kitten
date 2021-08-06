@@ -21,6 +21,9 @@ fn calculator_can_add_numbers() {
     }
 }
 
+
+// these functions below can be in another file along side if you wish like calculator_steps or kept in the same file
+
 fn a_calculator() -> Calculator {
     Calculator {}
 }
@@ -62,7 +65,7 @@ Kitten::given(|| School{})
     .when(|(school, pupil)| {
         school.enrol(pupil)
     })
-    .then(|(school, person)| {
+    .then(|(school, pupil)| {
         assert_eq(school.pupils.contains(pupil), true);
         assert_eq(pupil.is_enrolled_to_a_school(), true);
     });
