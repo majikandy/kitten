@@ -7,6 +7,7 @@
 
 - Use default language features
 - Keep tests as simple and clean as possible
+- Supports functions and closures as arguments to given/when/then
 
 ## Show me the code
 
