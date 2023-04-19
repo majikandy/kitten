@@ -7,7 +7,7 @@ authors = [
   "Kyle Manning <k_manning@live.co.uk>",
   "Rick Bolton <rickbolton@outlook.com>",
 ]
-edition = "2018"
+edition = "2021"
 description = "Kitten is a light bdd framework for Rust and for those who don't like cucumber - cats don't like cucumbers."
 license = "Apache-2.0"
 documentation = "https://docs.rs/kitten/0.3.0/kitten/"
