@@ -1,6 +1,6 @@
 [package]
 name = "kitten"
-version = "0.3.0"
+version = "0.5.0"
 authors = [
   "Andy Davis <github@andy-davis.co.uk>",
   "Matthew Weller <wellm018@gmail.com>",
@@ -8,7 +8,7 @@ authors = [
   "Rick Bolton <rickbolton@outlook.com>",
 ]
 edition = "2021"
-description = "Kitten is a light bdd framework for Rust and for those who don't like cucumber - cats don't like cucumbers."
+description = "Kitten is a light bdd framework for Rust and for those who don't like cucumber - cats don't like cucumbers, kittens are light cats."
 license = "Apache-2.0"
 documentation = "https://docs.rs/kitten/0.3.0/kitten/"
 homepage = "https://github.com/majikandy/kitten"
@@ -16,3 +16,7 @@ repository = "https://github.com/majikandy/kitten"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-trait = "0.1.73"
+futures-util = "0.3.28"
+tokio = { version = "1.32.0", features = ["full"] }
+
